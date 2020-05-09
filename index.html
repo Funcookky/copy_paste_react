@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Hello World</title>
+    <script src="https://unpkg.com/react@16/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+
+    <!-- Don't use this in production: -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+
+        // lock with state
+        class Lock extends React.Component {
+            constructor(props) {
+                super(props);
+                this.state = { date: new Date() }
+            }
+
+            componentDidMount() {
+                this.timerId = setInterval(
+                    () => this.tick(),
+                    1000
+                )
+            }
+            componentWillUnmount() {
+                clearInterval(this.timerId);
+            }
+
+            tick() {
+                this.setState({ date: new Date() });
+            }
+            render() {
+                return (
+                    <div>
+                        <h1>Hello World!</h1>
+                        <h2>It is {this.state.date.toLocaleTimeString()}</h2>
+                    </div>
+                )
+            }
+        }
+
+        // toggle with event
+        class Toggle extends React.Component {
+            constructor(props) {
+                super(props);
+                this.state = {
+                    on: false
+                }
+
+                //this.handleToggleClick = this.handleToggleClick.bind(this);
+            }
+
+            handleToggleClick(e) {
+                this.setState((state, props) => ({
+                    on: !state.on
+                }));
+            }
+
+            render() {
+                return (
+                    <button onClick={this.handleToggleClick.bind(this)}>
+                        {this.state.on ? "ON" : "OFF"}
+                    </button>
+                );
+            }
+        }
+
+        // condition rendering
+        function Greeting(props) {
+            if(props.loggedIn) {
+                return <div>Hello, User!</div>;
+            }
+            return <div>Hello, Guest!</div>
+        }
+
+        class LoginControl extends React.Component {
+            constructor(props) {
+                super(props);
+
+                this.state = {isLoggedIn: false};
+
+                this.handleLoginClick = this.handleLoginClick.bind(this);
+                this.handleLogoutClick = this.handleLogoutClick.bind(this);
+            }
+
+            handleLoginClick() {
+                this.setState({
+                    isLoggedIn: true
+                });
+            }
+
+            handleLogoutClick() {
+                this.setState({
+                    isLoggedIn: false
+                });
+            }
+
+            render() {
+                var isLoggedIn = this.state.isLoggedIn;
+                let button;
+                if(isLoggedIn) {
+                    button = <button onClick={this.handleLogoutClick}>Logout</button>;
+                } else {
+                    button = <button onClick={this.handleLoginClick}>Login</button>;
+                }
+                return (
+                    <div>
+                        <Greeting loggedIn={this.state.isLoggedIn}/>
+                        {button}
+                    </div>
+                )
+            }
+        }
+
+        // Lifting State Up
+        const scaleNames = {
+            c: 'Celsius',
+            f: 'Fahrenheit'
+        };
+        function BoilingVerdict(props) {
+            if(props.temp >= 100) {
+                return <p>Water is boiled!</p>
+            }
+            return <p>Water is not boiled!</p>
+        };
+
+        function tryConvert(temperature, convert) {
+                const input = parseFloat(temperature);
+                if(isNaN(input)) {
+                    return '';
+                }
+
+                const output = convert(input);
+                const rouned = Math.round(output*1000)/1000;
+                return rounded.toString();
+
+            }
+
+            function toCelsius(fahrenheit) {
+                return (fahrenheit -32) * 5 / 9;
+            }
+
+            function toFahrenheit(celsius) {
+                return (celsius * 9/5) + 32;
+            }
+        class TemperatureInput extends React.Component {
+            constructor(props) {
+                super(props);
+                this.handleChange = this.handleChange.bind(this);
+            }
+            handleChange(e) {
+                this.props.onTemperatureChange(e.target.value);
+            }
+
+            render() {
+                const temperature = this.state.temperature;
+                const scale = this.props.scale;
+                return(
+                    <fieldset>
+                        <legend>Enter temperature in {scaleNames[scale]}:</legend>
+                        <input value={temperature} onChange={this.handleChange}></input>
+                    </fieldset>
+                )
+            }
+        }
+
+        class Calculator extends React.Component {
+            constructor(props) {
+                super(props);
+
+                this.handleCelsiusChange = this.handleCelsiusChange.bind(this);
+                this.handleFahrenheitChange = this.handleFahrenheitChange.bind(this);
+
+                this.state = {temperature: '', scale: 'c'};
+            }
+
+            handleCelsiusChange(temperature) {
+                this.setState({scale: 'c', temperature});
+            }
+            handleFahrenheitChange(temperature) {
+                this.setState({scale: 'f', temperature});
+            }
+
+            
+
+            
+
+            render() {
+                const scale = this.state.scale;
+                const temperature = this.state.temperature;
+                const celsius = scale === 'f' ? tryConvert(temperature, toCelsius) : temperature;
+                const fahrenheit = scale === 'c' ? tryConvert(temperature, toFahrenheit) : temperature;
+                return (
+                    <div>
+                        <TemperatureInput scale="c" temperature={celsius} onTemperatureChange={this.handleCelsiusChange}></TemperatureInput>
+                        <TemperatureInput scale="f" temperature={fahrenheit} onTemperatureChange={this.handleFahrenheitChange}></TemperatureInput>
+                        <BoilingVerdict />
+                    </div>
+                )
+
+            }
+        }
+
+        ReactDOM.render(
+            <Calculator />,
+            document.getElementById('root')
+        )
+    </script>
+    <!--
+      Note: this page is a great way to try React but it's not suitable for production.
+      It slowly compiles JSX with Babel in the browser and uses a large development build of React.
+
+      Read this section for a production-ready setup with JSX:
+      https://reactjs.org/docs/add-react-to-a-website.html#add-jsx-to-a-project
+
+      In a larger project, you can use an integrated toolchain that includes JSX instead:
+      https://reactjs.org/docs/create-a-new-react-app.html
+
+      You can also use React without JSX, in which case you can remove Babel:
+      https://reactjs.org/docs/react-without-jsx.html
+    -->
+</body>
+
+</html>
